@@ -1,101 +1,158 @@
-import Image from "next/image";
+import IssueForm from "@/components/IssueForm";
+import Header from "@/components/Header";
 
 export default function Home() {
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <div className="flex items-center gap-4">
-          <Image
-            src="/github.svg" 
-            alt="GitHub logo"
-            width={40}
-            height={40}
-            priority
-          />
-          <h1 className="text-2xl font-bold">IssueBuilder AI</h1>
-        </div>
-
-        <div className="max-w-2xl text-center sm:text-left">
-          <p className="text-lg mb-4">
-            Transform your text into well-structured GitHub issues instantly with AI assistance.
-          </p>
-          <ol className="list-inside list-decimal text-sm/6 font-[family-name:var(--font-geist-mono)]">
-            <li className="mb-2 tracking-[-.01em]">
-              Paste your text or requirements
-            </li>
-            <li className="mb-2 tracking-[-.01em]">
-              Let AI analyze and structure the content
-            </li>
-            <li className="tracking-[-.01em]">
-              Create GitHub issues automatically
-            </li>
-          </ol>
-        </div>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <button
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-          >
-            <Image
-              src="/plus.svg"
-              alt="New issue icon" 
-              width={20}
-              height={20}
-            />
-            Create New Issue
-          </button>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto"
-            href="https://github.com/your-username/issuebuilder-ai"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            View on GitHub
-          </a>
+    <div style={{ 
+      display: "flex", 
+      flexDirection: "column", 
+      minHeight: "100vh", 
+      width: "100%" 
+    }}>
+      <Header />
+      <main style={{ 
+        flex: "1 1 auto", 
+        width: "100%", 
+        padding: "2rem 1rem",
+        backgroundColor: "#f9fafb" 
+      }}>
+        <div style={{ 
+          maxWidth: "1200px", 
+          margin: "0 auto", 
+          width: "100%" 
+        }}>
+          <div style={{ textAlign: "center", marginBottom: "2.5rem" }}>
+            <h1 style={{ 
+              fontSize: "3rem", 
+              fontWeight: "800", 
+              color: "#111827",
+              lineHeight: "1.2"
+            }}>
+              <span style={{ color: "#2563eb" }}>Issue</span>Builder<span style={{ color: "#2563eb" }}>AI</span>
+            </h1>
+            <p style={{ 
+              marginTop: "1rem", 
+              fontSize: "1.25rem", 
+              color: "#6b7280" 
+            }}>
+              Transform code comments into structured GitHub issues
+            </p>
+          </div>
+          
+          {/* Features Section */}
+          <div style={{ 
+            display: "grid", 
+            gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", 
+            gap: "2rem", 
+            marginBottom: "3rem" 
+          }}>
+            <div style={{ 
+              backgroundColor: "white", 
+              borderRadius: "0.5rem", 
+              boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1)", 
+              padding: "1.5rem" 
+            }}>
+              <div style={{ 
+                display: "flex", 
+                alignItems: "center", 
+                justifyContent: "center", 
+                height: "3rem", 
+                width: "3rem", 
+                borderRadius: "0.375rem", 
+                backgroundColor: "#3b82f6", 
+                color: "white", 
+                marginBottom: "1rem" 
+              }}>
+                <svg style={{ height: "1.5rem", width: "1.5rem" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </div>
+              <h3 style={{ fontSize: "1.125rem", fontWeight: "500", color: "#111827", marginBottom: "0.5rem" }}>
+                AI-Powered Analysis
+              </h3>
+              <p style={{ fontSize: "1rem", color: "#6b7280" }}>
+                Leverages Anthropic&apos;s Claude AI to intelligently parse and structure your code comments.
+              </p>
+            </div>
+            
+            <div style={{ 
+              backgroundColor: "white", 
+              borderRadius: "0.5rem", 
+              boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1)", 
+              padding: "1.5rem" 
+            }}>
+              <div style={{ 
+                display: "flex", 
+                alignItems: "center", 
+                justifyContent: "center", 
+                height: "3rem", 
+                width: "3rem", 
+                borderRadius: "0.375rem", 
+                backgroundColor: "#3b82f6", 
+                color: "white", 
+                marginBottom: "1rem" 
+              }}>
+                <svg style={{ height: "1.5rem", width: "1.5rem" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
+                </svg>
+              </div>
+              <h3 style={{ fontSize: "1.125rem", fontWeight: "500", color: "#111827", marginBottom: "0.5rem" }}>
+                Automatic Formatting
+              </h3>
+              <p style={{ fontSize: "1rem", color: "#6b7280" }}>
+                Creates well-structured issues with proper titles, descriptions, and suggested labels.
+              </p>
+            </div>
+            
+            <div style={{ 
+              backgroundColor: "white", 
+              borderRadius: "0.5rem", 
+              boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1)", 
+              padding: "1.5rem" 
+            }}>
+              <div style={{ 
+                display: "flex", 
+                alignItems: "center", 
+                justifyContent: "center", 
+                height: "3rem", 
+                width: "3rem", 
+                borderRadius: "0.375rem", 
+                backgroundColor: "#3b82f6", 
+                color: "white", 
+                marginBottom: "1rem" 
+              }}>
+                <svg style={{ height: "1.5rem", width: "1.5rem" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                </svg>
+              </div>
+              <h3 style={{ fontSize: "1.125rem", fontWeight: "500", color: "#111827", marginBottom: "0.5rem" }}>
+                GitHub Integration
+              </h3>
+              <p style={{ fontSize: "1rem", color: "#6b7280" }}>
+                Seamlessly create issues directly in your GitHub repositories with a single click.
+              </p>
+            </div>
+          </div>
+          
+          <IssueForm />
         </div>
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="/docs"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="Documentation icon"
-            width={16}
-            height={16}
-          />
-          Documentation
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="/examples"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Examples icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://github.com/your-username/issuebuilder-ai/issues"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Issues icon"
-            width={16}
-            height={16}
-          />
-          View Issues →
-        </a>
+      <footer style={{ 
+        width: "100%", 
+        backgroundColor: "white", 
+        padding: "1.5rem 0", 
+        borderTop: "1px solid #e5e7eb" 
+      }}>
+        <div style={{ 
+          maxWidth: "1200px", 
+          margin: "0 auto", 
+          padding: "0 1rem", 
+          textAlign: "center" 
+        }}>
+          <p style={{ fontSize: "0.875rem", color: "#6b7280" }}>
+            Powered by Anthropic Claude AI • {new Date().getFullYear()}
+          </p>
+        </div>
       </footer>
     </div>
   );
