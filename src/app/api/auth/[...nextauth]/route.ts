@@ -54,4 +54,4 @@ const authOptions = {
 
 // @ts-expect-error - NextAuth call type error
 const handler = NextAuth(authOptions);
-export { handler as GET, handler as POST };
+export { handler as GET, handler as POST, authOptions };

@@ -3,6 +3,7 @@
 import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
 import { toast } from "@/components/ui/toaster";
+import Link from "next/link";
 
 import { SVGProps } from "react";
 
@@ -65,30 +66,31 @@ export default function Dashboard() {
         }}>
           Dashboard
         </h1>
-        <button
-          onClick={() => toast.info("Create new issue clicked")}
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            padding: "0.5rem 1rem",
-            backgroundColor: "#2563eb",
-            color: "white",
-            border: "none",
-            borderRadius: "0.375rem",
-            fontWeight: "500",
-            cursor: "pointer"
-          }}
-        >
-          <svg 
-            style={{ marginRight: "0.5rem", height: "1rem", width: "1rem" }} 
-            fill="none" 
-            stroke="currentColor" 
-            viewBox="0 0 24 24"
+        <Link href="/dashboard/create-issue">
+          <button
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              padding: "0.5rem 1rem",
+              backgroundColor: "#2563eb",
+              color: "white",
+              border: "none",
+              borderRadius: "0.375rem",
+              fontWeight: "500",
+              cursor: "pointer"
+            }}
           >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-          Create New Issue
-        </button>
+            <svg 
+              style={{ marginRight: "0.5rem", height: "1rem", width: "1rem" }} 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            Create New Issue
+          </button>
+        </Link>
       </div>
       
       {isLoading ? (
