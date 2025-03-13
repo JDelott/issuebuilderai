@@ -8,7 +8,10 @@ const nextConfig: NextConfig = {
       aggregateTimeout: 300,
     };
     return config;
-  }
+  },
+  images: {
+    domains: ['avatars.githubusercontent.com'],
+  },
 };
 
 export default nextConfig;

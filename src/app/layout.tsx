@@ -1,6 +1,7 @@
 import "./globals.css";
 import { Inter } from "next/font/google";
 import { AuthProvider } from "@/components/AuthProvider";
+import { Toaster } from "@/components/ui/toaster";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -22,7 +23,8 @@ export default function RootLayout({
         margin: 0, 
         padding: 0,
         display: "flex",
-        flexDirection: "column"
+        flexDirection: "column",
+        backgroundColor: "#f9fafb"
       }} className={inter.className}>
         <AuthProvider>
           <div style={{ 
@@ -31,7 +33,14 @@ export default function RootLayout({
             minHeight: "100vh", 
             width: "100%" 
           }}>
-            {children}
+            {/* Header removed from here */}
+            <main style={{ 
+              flex: 1,
+              overflowY: "auto"
+            }}>
+              {children}
+            </main>
+            <Toaster />
           </div>
         </AuthProvider>
       </body>
