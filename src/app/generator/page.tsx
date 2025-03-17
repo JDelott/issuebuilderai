@@ -17,6 +17,11 @@ interface Issue {
   priority: string;
 }
 
+interface Notification {
+  message: string;
+  type: 'success' | 'error';
+}
+
 export default function Generator() {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -28,6 +33,9 @@ export default function Generator() {
   const [isCreatingIssues, setIsCreatingIssues] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedIssue, setEditedIssue] = useState<Issue | null>(null);
+  const [notification, setNotification] = useState<Notification | null>(null);
 
   // Add debug logging for session
   useEffect(() => {
@@ -70,9 +78,23 @@ export default function Generator() {
     }
   }, [status, router]);
 
+  // Add notification timeout cleanup
+  useEffect(() => {
+    if (notification) {
+      const timer = setTimeout(() => {
+        setNotification(null);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [notification]);
+
+  const showNotification = (message: string, type: 'success' | 'error') => {
+    setNotification({ message, type });
+  };
+
   const handleGenerateIssue = async () => {
     if (!selectedRepo || !inputText) {
-      alert("Please select a repository and enter some text");
+      showNotification("Please select a repository and enter some text", "error");
       return;
     }
 
@@ -95,16 +117,17 @@ export default function Generator() {
 
       const issue = await response.json();
       setGeneratedIssue(issue);
+      setEditedIssue(issue);
     } catch (error) {
       console.error('Generation Error:', error);
-      alert('Failed to generate issue. Please try again.');
+      showNotification("Failed to generate issue. Please try again.", "error");
     } finally {
       setIsProcessing(false);
     }
   };
 
   const handleCreateIssue = async () => {
-    if (!selectedRepo || !generatedIssue) return;
+    if (!selectedRepo || !editedIssue) return;
 
     setIsCreatingIssues(true);
     try {
@@ -115,7 +138,7 @@ export default function Generator() {
         },
         body: JSON.stringify({
           repository: selectedRepo,
-          issues: [generatedIssue],
+          issues: [editedIssue],
         }),
       });
 
@@ -123,15 +146,42 @@ export default function Generator() {
         throw new Error('Failed to create issue');
       }
 
-      alert('Issue created successfully!');
+      showNotification("Issue created successfully!", "success");
       // Reset form
       setInputText('');
       setGeneratedIssue(null);
+      setEditedIssue(null);
+      setIsEditing(false);
     } catch (error) {
       console.error('Issue Creation Error:', error);
-      alert('Failed to create issue. Please try again.');
+      showNotification("Failed to create issue. Please try again.", "error");
     } finally {
       setIsCreatingIssues(false);
+    }
+  };
+
+  const handleDeleteIssue = () => {
+    if (confirm('Are you sure you want to delete this generated issue?')) {
+      setGeneratedIssue(null);
+      setEditedIssue(null);
+      setIsEditing(false);
+      showNotification("Issue deleted", "success");
+    }
+  };
+
+  const handleEditToggle = () => {
+    setIsEditing(!isEditing);
+  };
+
+  const handleEditChange = (field: keyof Issue, value: string | string[]) => {
+    if (!editedIssue) return;
+    
+    if (field === 'labels') {
+      // Handle labels as comma-separated string
+      const labels = typeof value === 'string' ? value.split(',').map(l => l.trim()) : value;
+      setEditedIssue({ ...editedIssue, [field]: labels });
+    } else {
+      setEditedIssue({ ...editedIssue, [field]: value });
     }
   };
 
@@ -145,6 +195,15 @@ export default function Generator() {
 
   return (
     <div className="min-h-screen flex flex-col">
+      {/* Notification Toast */}
+      {notification && (
+        <div className={`fixed top-4 right-4 px-4 py-2 rounded-md text-white transition-all transform ${
+          notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'
+        }`}>
+          {notification.message}
+        </div>
+      )}
+
       {/* Header */}
       <header className="w-full bg-[#111111]">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
@@ -249,28 +308,92 @@ export default function Generator() {
             </div>
 
             {/* Generated Issue Preview */}
-            {generatedIssue && (
+            {generatedIssue && editedIssue && (
               <div className="space-y-6">
-                <h2 className="text-xl font-semibold">Generated Issue</h2>
+                <div className="flex justify-between items-center">
+                  <h2 className="text-xl font-semibold">Generated Issue</h2>
+                  <div className="space-x-2">
+                    <button
+                      onClick={handleEditToggle}
+                      className="px-3 py-1 text-sm bg-blue-100 text-blue-800 rounded hover:bg-blue-200"
+                    >
+                      {isEditing ? 'Preview' : 'Edit'}
+                    </button>
+                    <button
+                      onClick={handleDeleteIssue}
+                      className="px-3 py-1 text-sm bg-red-100 text-red-800 rounded hover:bg-red-200"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+
                 <div className="border border-gray-200 rounded-md p-4">
-                  <h3 className="font-medium">{generatedIssue.title}</h3>
-                  <div className="mt-2 text-sm text-gray-600 whitespace-pre-wrap">
-                    {generatedIssue.body}
-                  </div>
-                  <div className="mt-2 flex gap-2">
-                    {generatedIssue.labels.map((label, i) => (
-                      <span key={i} className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
-                        {label}
-                      </span>
-                    ))}
-                    <span className={`px-2 py-1 rounded-full text-xs ${
-                      generatedIssue.priority === 'high' ? 'bg-red-100 text-red-800' :
-                      generatedIssue.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-green-100 text-green-800'
-                    }`}>
-                      {generatedIssue.priority}
-                    </span>
-                  </div>
+                  {isEditing ? (
+                    // Edit Mode
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Title</label>
+                        <input
+                          type="text"
+                          value={editedIssue.title}
+                          onChange={(e) => handleEditChange('title', e.target.value)}
+                          className="w-full p-2 border rounded-md"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Body</label>
+                        <textarea
+                          value={editedIssue.body}
+                          onChange={(e) => handleEditChange('body', e.target.value)}
+                          className="w-full p-2 border rounded-md h-64"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Labels (comma-separated)</label>
+                        <input
+                          type="text"
+                          value={editedIssue.labels.join(', ')}
+                          onChange={(e) => handleEditChange('labels', e.target.value)}
+                          className="w-full p-2 border rounded-md"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Priority</label>
+                        <select
+                          value={editedIssue.priority}
+                          onChange={(e) => handleEditChange('priority', e.target.value)}
+                          className="w-full p-2 border rounded-md"
+                        >
+                          <option value="high">High</option>
+                          <option value="medium">Medium</option>
+                          <option value="low">Low</option>
+                        </select>
+                      </div>
+                    </div>
+                  ) : (
+                    // Preview Mode
+                    <>
+                      <h3 className="font-medium">{editedIssue.title}</h3>
+                      <div className="mt-2 text-sm text-gray-600 whitespace-pre-wrap">
+                        {editedIssue.body}
+                      </div>
+                      <div className="mt-2 flex gap-2">
+                        {editedIssue.labels.map((label, i) => (
+                          <span key={i} className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+                            {label}
+                          </span>
+                        ))}
+                        <span className={`px-2 py-1 rounded-full text-xs ${
+                          editedIssue.priority === 'high' ? 'bg-red-100 text-red-800' :
+                          editedIssue.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-green-100 text-green-800'
+                        }`}>
+                          {editedIssue.priority}
+                        </span>
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 {/* Create Issue Button */}
