@@ -6,14 +6,26 @@ import { useEffect, useState } from "react";
 
 interface Repository {
   id: number;
-  full_name: string;
   name: string;
+  full_name: string;
+}
+
+interface Issue {
+  title: string;
+  body: string;
+  labels: string[];
+  priority: string;
 }
 
 export default function Generator() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [repositories, setRepositories] = useState<Repository[]>([]);
+  const [selectedRepo, setSelectedRepo] = useState<string>("");
+  const [inputText, setInputText] = useState<string>("");
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [generatedIssue, setGeneratedIssue] = useState<Issue | null>(null);
+  const [isCreatingIssues, setIsCreatingIssues] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -58,6 +70,71 @@ export default function Generator() {
     }
   }, [status, router]);
 
+  const handleGenerateIssue = async () => {
+    if (!selectedRepo || !inputText) {
+      alert("Please select a repository and enter some text");
+      return;
+    }
+
+    setIsProcessing(true);
+    try {
+      const response = await fetch('/api/process', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          text: inputText,
+          repository: selectedRepo,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to process text');
+      }
+
+      const issue = await response.json();
+      setGeneratedIssue(issue);
+    } catch (error) {
+      console.error('Generation Error:', error);
+      alert('Failed to generate issue. Please try again.');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleCreateIssue = async () => {
+    if (!selectedRepo || !generatedIssue) return;
+
+    setIsCreatingIssues(true);
+    try {
+      const response = await fetch('/api/github/issues', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          repository: selectedRepo,
+          issues: [generatedIssue],
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create issue');
+      }
+
+      alert('Issue created successfully!');
+      // Reset form
+      setInputText('');
+      setGeneratedIssue(null);
+    } catch (error) {
+      console.error('Issue Creation Error:', error);
+      alert('Failed to create issue. Please try again.');
+    } finally {
+      setIsCreatingIssues(false);
+    }
+  };
+
   if (status === 'loading' || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-neutral-200">
@@ -100,12 +177,14 @@ export default function Generator() {
                   Select Repository
                 </label>
                 <span className="block text-xs sm:text-sm text-neutral-500">
-                  Choose where to create the new issues
+                  Choose where to create the new issue
                 </span>
               </div>
               <div className="relative">
                 <div className="bg-white border-b-2 border-neutral-300 transition-colors focus-within:border-[#FF3F0A]">
                   <select 
+                    value={selectedRepo}
+                    onChange={(e) => setSelectedRepo(e.target.value)}
                     className="w-full appearance-none bg-transparent text-neutral-800 text-sm sm:text-base px-4 sm:px-6 py-4 sm:py-5 focus:ring-0 focus:outline-none"
                   >
                     <option value="" className="text-neutral-400">Select a repository...</option>
@@ -140,6 +219,8 @@ export default function Generator() {
               </div>
               <div className="bg-white border-b-2 border-neutral-300 transition-colors focus-within:border-[#FF3F0A]">
                 <textarea 
+                  value={inputText}
+                  onChange={(e) => setInputText(e.target.value)}
                   className="w-full h-48 sm:h-64 bg-transparent text-neutral-800 text-sm sm:text-base px-4 sm:px-6 py-4 sm:py-5 focus:ring-0 focus:outline-none resize-none placeholder:text-neutral-400 placeholder:text-xs sm:placeholder:text-sm"
                   placeholder="Start by pasting your content here. This could be:
 
@@ -153,15 +234,55 @@ export default function Generator() {
 
             {/* Generate Button */}
             <div className="pt-4 sm:pt-8">
-              <button className="group w-full sm:w-auto bg-[#111111] hover:bg-[#FF3F0A] text-white px-8 sm:px-12 py-3 shadow-sm hover:shadow transition-all">
+              <button
+                onClick={handleGenerateIssue}
+                disabled={isProcessing || !selectedRepo || !inputText}
+                className="group w-full sm:w-auto bg-[#111111] hover:bg-[#FF3F0A] text-white px-8 sm:px-12 py-3 shadow-sm hover:shadow transition-all"
+              >
                 <span className="inline-flex items-center gap-2 text-sm sm:text-base">
-                  Generate Issues
+                  {isProcessing ? 'Processing...' : 'Generate Issue'}
                   <svg className="w-3 h-3 sm:w-4 sm:h-4 text-[#FF3F0A] group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
                   </svg>
                 </span>
               </button>
             </div>
+
+            {/* Generated Issue Preview */}
+            {generatedIssue && (
+              <div className="space-y-6">
+                <h2 className="text-xl font-semibold">Generated Issue</h2>
+                <div className="border border-gray-200 rounded-md p-4">
+                  <h3 className="font-medium">{generatedIssue.title}</h3>
+                  <div className="mt-2 text-sm text-gray-600 whitespace-pre-wrap">
+                    {generatedIssue.body}
+                  </div>
+                  <div className="mt-2 flex gap-2">
+                    {generatedIssue.labels.map((label, i) => (
+                      <span key={i} className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+                        {label}
+                      </span>
+                    ))}
+                    <span className={`px-2 py-1 rounded-full text-xs ${
+                      generatedIssue.priority === 'high' ? 'bg-red-100 text-red-800' :
+                      generatedIssue.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-green-100 text-green-800'
+                    }`}>
+                      {generatedIssue.priority}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Create Issue Button */}
+                <button
+                  onClick={handleCreateIssue}
+                  disabled={isCreatingIssues}
+                  className="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 disabled:opacity-50"
+                >
+                  {isCreatingIssues ? 'Creating Issue...' : 'Create Issue in GitHub'}
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </main>
