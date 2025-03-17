@@ -2,11 +2,54 @@
 
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+
+interface Repository {
+  id: number;
+  full_name: string;
+  name: string;
+}
 
 export default function Generator() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const [repositories, setRepositories] = useState<Repository[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Add debug logging for session
+  useEffect(() => {
+    console.log('Session status:', status);
+    console.log('Session data:', session);
+  }, [session, status]);
+
+  useEffect(() => {
+    async function fetchRepositories() {
+      try {
+        const response = await fetch('/api/github/repos');
+        console.log('API Response:', response);
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error('API Error:', errorData);
+          throw new Error(`Failed to fetch repositories: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('Repositories:', data);
+        setRepositories(data);
+      } catch (err) {
+        console.error('Fetch Error:', err);
+        setError('Failed to load repositories');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    if (status === 'authenticated' && session?.accessToken) {
+      fetchRepositories();
+    }
+  }, [session, status]);
 
   // Redirect to home if not authenticated
   useEffect(() => {
@@ -15,7 +58,7 @@ export default function Generator() {
     }
   }, [status, router]);
 
-  if (status === 'loading') {
+  if (status === 'loading' || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-neutral-200">
         <div className="text-neutral-900">Loading...</div>
@@ -66,9 +109,15 @@ export default function Generator() {
                     className="w-full appearance-none bg-transparent text-neutral-800 text-sm sm:text-base px-4 sm:px-6 py-4 sm:py-5 focus:ring-0 focus:outline-none"
                   >
                     <option value="" className="text-neutral-400">Select a repository...</option>
-                    <option value="repo1" className="text-neutral-800">username/repository-name</option>
-                    <option value="repo2" className="text-neutral-800">organization/project-name</option>
-                    {/* We'll populate this with the user's repos later */}
+                    {error ? (
+                      <option disabled className="text-red-500">Error loading repositories</option>
+                    ) : (
+                      repositories.map((repo) => (
+                        <option key={repo.id} value={repo.full_name} className="text-neutral-800">
+                          {repo.full_name}
+                        </option>
+                      ))
+                    )}
                   </select>
                   <div className="absolute inset-y-0 right-0 flex items-center px-4 sm:px-6 pointer-events-none">
                     <svg className="h-3 w-3 sm:h-4 sm:w-4 text-[#FF3F0A]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
