@@ -1,0 +1,20 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --orange: #FF5F1F;
+  --black: #000000;
+  --white: #FFFFFF;
+}
+
+body {
+  @apply min-h-screen w-full;
+  background-color: var(--white);
+  color: var(--black);
+  font-family: Helvetica, Arial, sans-serif;
+}
+
+* {
+  @apply box-border m-0 p-0;
+}
