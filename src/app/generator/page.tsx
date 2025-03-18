@@ -37,6 +37,8 @@ export default function Generator() {
   const [isEditing, setIsEditing] = useState(false);
   const [editedIssue, setEditedIssue] = useState<Issue | null>(null);
   const [notification, setNotification] = useState<Notification | null>(null);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
   // Add debug logging for session
   useEffect(() => {
@@ -188,6 +190,10 @@ export default function Generator() {
     }
   };
 
+  const filteredRepositories = repositories.filter(repo =>
+    repo.full_name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   if (status === 'loading' || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-neutral-200">
@@ -253,28 +259,59 @@ export default function Generator() {
               </div>
               <div className="relative">
                 <div className="bg-white border-b-2 border-neutral-300 transition-colors focus-within:border-[#FF3F0A]">
-                  <select 
-                    value={selectedRepo}
-                    onChange={(e) => setSelectedRepo(e.target.value)}
-                    className="w-full appearance-none bg-transparent text-neutral-800 text-sm sm:text-base px-4 sm:px-6 py-4 sm:py-5 focus:ring-0 focus:outline-none"
-                  >
-                    <option value="" className="text-neutral-400">Select a repository...</option>
-                    {error ? (
-                      <option disabled className="text-red-500">Error loading repositories</option>
-                    ) : (
-                      repositories.map((repo) => (
-                        <option key={repo.id} value={repo.full_name} className="text-neutral-800">
-                          {repo.full_name}
-                        </option>
-                      ))
-                    )}
-                  </select>
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => {
+                      setSearchTerm(e.target.value);
+                      setIsDropdownOpen(true);
+                    }}
+                    onClick={() => setIsDropdownOpen(true)}
+                    placeholder="Search repositories..."
+                    className="w-full text-neutral-800 text-sm sm:text-base px-4 sm:px-6 py-4 sm:py-5 focus:outline-none"
+                  />
                   <div className="absolute inset-y-0 right-0 flex items-center px-4 sm:px-6 pointer-events-none">
-                    <svg className="h-3 w-3 sm:h-4 sm:w-4 text-[#FF3F0A]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg 
+                      className={`h-3 w-3 sm:h-4 sm:w-4 text-[#FF3F0A] transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} 
+                      fill="none" 
+                      stroke="currentColor" 
+                      viewBox="0 0 24 24"
+                    >
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
                     </svg>
                   </div>
                 </div>
+
+                {isDropdownOpen && (
+                  <>
+                    <div 
+                      className="fixed inset-0 z-10"
+                      onClick={() => setIsDropdownOpen(false)}
+                    />
+                    <div className="absolute z-20 left-0 right-0 mt-1 max-h-60 overflow-auto bg-white border border-neutral-200 shadow-lg rounded-md">
+                      {error ? (
+                        <div className="px-4 py-3 text-red-500 text-sm">Error loading repositories</div>
+                      ) : filteredRepositories.length === 0 ? (
+                        <div className="px-4 py-3 text-neutral-500 text-sm">No repositories found</div>
+                      ) : (
+                        filteredRepositories.map((repo) => (
+                          <div
+                            key={repo.id}
+                            onClick={() => {
+                              setSelectedRepo(repo.full_name);
+                              setSearchTerm(repo.full_name);
+                              setIsDropdownOpen(false);
+                            }}
+                            className="px-4 sm:px-6 py-3 text-sm hover:bg-neutral-50 cursor-pointer transition-colors"
+                          >
+                            <div className="font-medium text-neutral-900">{repo.name}</div>
+                            <div className="text-neutral-500 text-xs mt-0.5">{repo.full_name}</div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </>
+                )}
               </div>
             </div>
 
@@ -425,7 +462,7 @@ export default function Generator() {
       {/* Footer */}
       <footer className="w-full border-t border-neutral-200 bg-neutral-100">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
-          <div className="text-neutral-500 text-[10px] sm:text-xs tracking-wide text-center">© 2024 IssueBuilder AI</div>
+          <div className="text-neutral-500 text-[10px] sm:text-xs tracking-wide text-center">© 2025 IssueBuilder AI</div>
         </div>
       </footer>
     </div>
